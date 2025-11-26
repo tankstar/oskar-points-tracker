@@ -1,44 +1,70 @@
-import { useMemo } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import SummaryCard from '../components/SummaryCard';
-import HistoryItem from '../components/HistoryItem';
-import { useWeekPoints } from '../hooks/usePoints';
+import React from 'react';
+import {FlatList, StyleSheet, Text, View} from 'react-native';
+import ScoreCard from '../components/ScoreCard';
+import {usePoints} from '../context/PointsContext';
+import {getWeeklyResultText} from '../utils/points';
 
 const WeekScreen = () => {
-  const today = new Date();
-  const startOfWeek = useMemo(() => {
-    const d = new Date(today);
-    const day = d.getDay();
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-    d.setDate(diff);
-    return d;
-  }, [today]);
-
-  const endOfWeek = useMemo(() => {
-    const d = new Date(startOfWeek);
-    d.setDate(d.getDate() + 6);
-    return d;
-  }, [startOfWeek]);
-
-  const { entries, total, reward } = useWeekPoints(startOfWeek, endOfWeek);
+  const {weekSummary} = usePoints();
+  const resultText = getWeeklyResultText(weekSummary.total);
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.heading}>Week</Text>
-      <SummaryCard title="Total" value={total} reward={reward} />
-      <View style={styles.list}>
-        {entries.map((entry) => (
-          <HistoryItem key={entry.id} entry={entry} />
-        ))}
-      </View>
-    </ScrollView>
+    <View style={styles.container}>
+      <ScoreCard
+        title="Week total"
+        value={weekSummary.total}
+        subtitle={resultText}
+      />
+      <Text style={styles.sectionTitle}>Points per day (Mon-Sun)</Text>
+      <FlatList
+        data={weekSummary.days}
+        keyExtractor={item => item.key}
+        renderItem={({item}) => (
+          <View style={styles.row}>
+            <Text style={styles.day}>{item.label}</Text>
+            <Text style={[styles.value, item.total < 0 ? styles.negative : styles.positive]}>
+              {item.total > 0 ? `+${item.total}` : item.total}
+            </Text>
+          </View>
+        )}
+      />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { padding: 16, backgroundColor: '#fff' },
-  heading: { fontSize: 24, fontWeight: '800', color: '#0f172a', marginBottom: 12 },
-  list: { marginTop: 12 },
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: '#fff',
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginVertical: 10,
+    color: '#111827',
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: '#e5e7eb',
+  },
+  day: {
+    fontSize: 16,
+    color: '#1f2937',
+  },
+  value: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  positive: {
+    color: '#0f766e',
+  },
+  negative: {
+    color: '#b91c1c',
+  },
 });
 
 export default WeekScreen;

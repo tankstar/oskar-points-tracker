@@ -1,0 +1,1 @@
+Native iOS project placeholders for the React Native CLI app. Generate pods and the full Xcode project structure after installing dependencies (for example, by running `npx pod-install` from the root).
