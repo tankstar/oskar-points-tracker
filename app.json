@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "Oskar Points Tracker",
+    "slug": "oskar-points-tracker",
+    "scheme": "oskarpoints",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.example.oskarpointstracker"
+    },
+    "android": {
+      "package": "com.example.oskarpointstracker"
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": false
+    },
+    "extra": {
+      "router": {
+        "origin": "default"
+      }
+    }
+  }
+}
