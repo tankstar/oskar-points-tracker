@@ -10,6 +10,7 @@ const SummaryCard = ({ title, value, reward }) => (
 
 const styles = StyleSheet.create({
   card: {
+    flex: 1,
     padding: 16,
     borderRadius: 12,
     backgroundColor: '#e0f2fe',

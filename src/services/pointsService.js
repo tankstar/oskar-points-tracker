@@ -1,60 +1,38 @@
-import {
-  addDoc,
-  collection,
-  onSnapshot,
-  orderBy,
-  query,
-  serverTimestamp,
-  where,
-} from 'firebase/firestore';
-import { db, auth } from '../firebase/config';
+import { addDoc, collection, onSnapshot, orderBy, query, serverTimestamp, where } from 'firebase/firestore';
+import { auth, db } from '../firebase/config';
 import { ALL_POINT_RULES } from '../utils/rules';
 
-const POINTS_COLLECTION = 'points';
+const pointsRef = collection(db, 'points');
 
-const deriveCreatedBy = (user) => {
-  if (!user) return 'parent';
-  if (user.displayName) return user.displayName;
-  if (user.email) return user.email.split('@')[0] || 'parent';
-  return 'parent';
+const mapSnapshot = (snapshot) => snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+const pointsQuery = (startDate, endDate) => {
+  const constraints = [where('date', '>=', startDate), where('date', '<=', endDate), orderBy('date', 'desc'), orderBy('timestamp', 'desc')];
+  return query(pointsRef, ...constraints);
 };
 
-export const listenToTodayPoints = (dateString, callback) => {
-  const ref = collection(db, POINTS_COLLECTION);
-  const q = query(ref, where('date', '==', dateString), orderBy('timestamp', 'desc'));
-  return onSnapshot(q, callback);
-};
+export const listenToPointsRange = (startDate, endDate, callback) =>
+  onSnapshot(pointsQuery(startDate, endDate), (snap) => callback(mapSnapshot(snap)));
 
 export const addPointEvent = async ({ category, value, comment = '' }) => {
-  if (!auth.currentUser) throw new Error('Not authenticated');
-  if (!ALL_POINT_RULES[category]) throw new Error('Unknown category');
-  if (ALL_POINT_RULES[category].value !== value) throw new Error('Value does not match category rule');
-  const cleanComment = comment.trim();
+  if (!auth.currentUser) {
+    throw new Error('Please sign in first.');
+  }
+  const rule = ALL_POINT_RULES[category];
+  if (!rule || rule.value !== value) {
+    throw new Error('Point value does not match rule.');
+  }
+
   const now = new Date();
-  const date = now.toISOString().slice(0, 10);
   const payload = {
     timestamp: now.toISOString(),
-    date,
+    date: now.toISOString().slice(0, 10),
     category,
     value,
-    comment: cleanComment,
-    createdBy: deriveCreatedBy(auth.currentUser),
+    comment: comment.trim(),
+    createdBy: auth.currentUser.email?.split('@')[0] || 'parent',
     createdAt: serverTimestamp(),
   };
-  await addDoc(collection(db, POINTS_COLLECTION), payload);
-};
 
-export const listenToWeekPoints = (startDate, endDate, callback) => {
-  const ref = collection(db, POINTS_COLLECTION);
-  const q = query(
-    ref,
-    where('date', '>=', startDate),
-    where('date', '<=', endDate),
-    orderBy('date', 'desc'),
-    orderBy('timestamp', 'desc'),
-  );
-  return onSnapshot(q, callback);
+  await addDoc(pointsRef, payload);
 };
-
-export const listenToRangePoints = (startDate, endDate, callback) =>
-  listenToWeekPoints(startDate, endDate, callback);
