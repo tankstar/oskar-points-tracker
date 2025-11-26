@@ -1,33 +1,31 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import HistoryItem from '../components/HistoryItem';
-import { useRangePoints } from '../hooks/usePoints';
+import React from 'react';
+import {StyleSheet, Text, View} from 'react-native';
+import ActionList from '../components/ActionList';
+import {usePoints} from '../context/PointsContext';
 
 const HistoryScreen = () => {
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-  const now = new Date();
-  const { entries, loading } = useRangePoints(thirtyDaysAgo, now);
+  const {history} = usePoints();
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.heading}>History (30 days)</Text>
-      <View style={styles.list}>
-        {entries.map((entry) => (
-          <HistoryItem key={entry.id} entry={entry} />
-        ))}
-        {!loading && entries.length === 0 ? (
-          <Text style={styles.empty}>No entries yet. Add today to see the timeline fill up.</Text>
-        ) : null}
-      </View>
-    </ScrollView>
+    <View style={styles.container}>
+      <Text style={styles.title}>Last 30 days</Text>
+      <ActionList data={history} emptyLabel="No recent actions." />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { padding: 16, backgroundColor: '#fff' },
-  heading: { fontSize: 24, fontWeight: '800', color: '#0f172a', marginBottom: 12 },
-  list: { marginTop: 8 },
-  empty: { color: '#475569', marginTop: 12 },
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: '#fff',
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 8,
+    color: '#111827',
+  },
 });
 
 export default HistoryScreen;

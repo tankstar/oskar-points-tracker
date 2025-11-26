@@ -1,0 +1,1 @@
+// Xcode project placeholder. Run `npx react-native init OskarPointsTracker` or open the project after installing dependencies to regenerate a full project file.

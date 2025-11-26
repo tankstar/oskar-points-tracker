@@ -1,0 +1,1 @@
+Native Android project structure for the React Native CLI app. The Gradle wrapper JAR is not committed in this environment; run `gradle wrapper` after installing dependencies to regenerate it if needed.

@@ -1,66 +1,99 @@
-import { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TextInput } from 'react-native';
-import PointButton from '../components/PointButton';
-import HistoryItem from '../components/HistoryItem';
-import { POSITIVE_POINTS, NEGATIVE_POINTS } from '../utils/rules';
-import { addPointEvent } from '../services/pointsService';
-import { useTodayPoints } from '../hooks/usePoints';
-import SummaryCard from '../components/SummaryCard';
+import React, {useMemo, useState} from 'react';
+import {ScrollView, StyleSheet, Text, TextInput, View} from 'react-native';
+import ActionButton from '../components/ActionButton';
+import ActionList from '../components/ActionList';
+import ScoreCard from '../components/ScoreCard';
+import {usePoints} from '../context/PointsContext';
+import {negativeActions, positiveActions} from '../utils/points';
 
 const TodayScreen = () => {
+  const {addAction, actions, todayTotal} = usePoints();
   const [comment, setComment] = useState('');
-  const { entries, total } = useTodayPoints();
 
-  const handlePress = async (category, value) => {
-    try {
-      await addPointEvent({ category, value, comment });
-      setComment('');
-    } catch (error) {
-      Alert.alert('Error', error.message);
-    }
+  const todayActions = useMemo(() => {
+    const today = new Date();
+    return actions.filter(item => {
+      const date = new Date(item.date);
+      return (
+        date.getFullYear() === today.getFullYear() &&
+        date.getMonth() === today.getMonth() &&
+        date.getDate() === today.getDate()
+      );
+    });
+  }, [actions]);
+
+  const handleAdd = (label, value) => {
+    addAction({label, value, comment});
+    setComment('');
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.heading}>Today</Text>
-      <SummaryCard title="Total" value={total} />
-
-      <Text style={styles.section}>Positive</Text>
-      {Object.entries(POSITIVE_POINTS).map(([key, item]) => (
-        <PointButton key={key} label={item.label} value={item.value} onPress={() => handlePress(key, item.value)} />
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <ScoreCard title="Today's total" value={todayTotal} />
+      <View style={styles.commentBox}>
+        <Text style={styles.commentLabel}>Optional comment</Text>
+        <TextInput
+          placeholder="Add a note to the next action"
+          value={comment}
+          onChangeText={setComment}
+          style={styles.commentInput}
+        />
+      </View>
+      <Text style={styles.sectionTitle}>Positive points</Text>
+      {positiveActions.map(item => (
+        <ActionButton
+          key={item.label}
+          label={item.label}
+          value={item.value}
+          onPress={() => handleAdd(item.label, item.value)}
+          type="positive"
+        />
       ))}
-
-      <Text style={styles.section}>Negative</Text>
-      {Object.entries(NEGATIVE_POINTS).map(([key, item]) => (
-        <PointButton key={key} label={item.label} value={item.value} onPress={() => handlePress(key, item.value)} />
+      <Text style={styles.sectionTitle}>Negative points</Text>
+      {negativeActions.map(item => (
+        <ActionButton
+          key={item.label}
+          label={item.label}
+          value={item.value}
+          onPress={() => handleAdd(item.label, item.value)}
+          type="negative"
+        />
       ))}
-
-      <Text style={styles.section}>Comment (optional)</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Add a note"
-        value={comment}
-        onChangeText={setComment}
-      />
-
-      <Text style={styles.section}>Latest</Text>
-      {entries.map((entry) => (
-        <HistoryItem key={entry.id} entry={entry} />
-      ))}
+      <Text style={styles.sectionTitle}>Today&apos;s actions</Text>
+      <ActionList data={todayActions} emptyLabel="No actions logged today." />
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { padding: 16, backgroundColor: '#fff' },
-  heading: { fontSize: 24, fontWeight: '800', color: '#0f172a', marginBottom: 12 },
-  section: { marginTop: 18, marginBottom: 6, fontSize: 16, fontWeight: '600', color: '#0f172a' },
-  input: {
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  content: {
+    padding: 16,
+    paddingBottom: 40,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginTop: 16,
+    marginBottom: 8,
+    color: '#111827',
+  },
+  commentBox: {
+    marginBottom: 8,
+  },
+  commentLabel: {
+    color: '#374151',
+    marginBottom: 6,
+  },
+  commentInput: {
     borderWidth: 1,
-    borderColor: '#e2e8f0',
-    borderRadius: 8,
-    padding: 10,
-    backgroundColor: '#f8fafc',
+    borderColor: '#d1d5db',
+    borderRadius: 10,
+    padding: 12,
+    backgroundColor: '#f9fafb',
   },
 });
 

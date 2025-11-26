@@ -1,0 +1,40 @@
+apply plugin: 'com.android.application'
+apply plugin: 'org.jetbrains.kotlin.android'
+
+import com.android.build.OutputFile
+
+project.ext.react = [
+    enableHermes: true,
+    entryFile: "index.js"
+]
+
+apply from: "../node_modules/react-native/react.gradle"
+apply from: "../node_modules/@react-native-community/cli-platform-android/native_modules.gradle", {
+    applyNativeModulesAppBuildGradle(project)
+}
+
+android {
+    namespace "com.oskarpointstracker"
+    compileSdkVersion rootProject.ext.compileSdkVersion
+
+    defaultConfig {
+        applicationId "com.oskarpointstracker"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 1
+        versionName "1.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: "libs", include: ["*.jar"])
+    implementation "com.facebook.react:react-native:${reactNativeVersion}"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
+}
